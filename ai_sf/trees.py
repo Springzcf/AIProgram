@@ -60,7 +60,7 @@ def chooseBestFeatureToSplit(dataSet):
 			bestInfoGain = infoGain
 			bestFuture = i
 	return bestFuture
-#这个主要作用是什么
+#what is it doing?
 def majorityCnt(classList):
 	classCount = {}
 	for vote in classList:
@@ -70,7 +70,7 @@ def majorityCnt(classList):
 	key = operator.itemgetter(1),reverse=True)
 	return sortedClassCount[0][0]
 
-#构建树
+#create Tree function
 def createTree(dataSet,labels):
 	classList = [example[-1] for example in dataSet]
 	if classList.count(classLits[0] == len(classList)):
