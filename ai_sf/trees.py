@@ -60,7 +60,7 @@ def chooseBestFeatureToSplit(dataSet):
 			bestInfoGain = infoGain
 			bestFuture = i
 	return bestFuture
-
+#这个主要作用是什么
 def majorityCnt(classList):
 	classCount = {}
 	for vote in classList:
