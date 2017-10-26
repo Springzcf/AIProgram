@@ -71,23 +71,34 @@ def majorityCnt(classList):
 
 #create Tree function
 def createTree(dataSet,labels):
+	#获取结果集中,所有list中最后一个元素(分类)
 	classList = [example[-1] for example in dataSet]
-	print(classList)
+	#print(classList)
+	#>> ['yes', 'yes', 'no', 'no', 'no']
 	if classList.count(classList[0]) == len(classList):
 		return classList[0]
 	if len(dataSet[0]) == 1:
 		return majorityCnt(classList)
 	bestFeat = chooseBestFeatureToSplit(dataSet)
-	print(bestFeat)
+	#print(bestFeat)
+	#>> 0
 	bestFeatLabel = labels[bestFeat]
-	print(bestFeatLabel)
+	#print(bestFeatLabel)
+	#>>"no surfacing"
+	#创建字典数,存放计算出来的树,作为返回值
 	myTree = {bestFeatLabel:{}}
+	#已经得到节点,进行删除
 	del(labels[bestFeat])
 	featValues = [example[bestFeat] for example in dataSet]
-	print(featValues)
+	#print(featValues) >> [1, 1, 1, 0, 0]
 	uniqueVals = set(featValues)
-	print(uniqueVals)
 	for value in uniqueVals:
 		subLabels = labels[:]
 		myTree[bestFeatLabel][value] = createTree(splitDataSet(dataSet,bestFeat,value),subLabels)
 	return myTree
+
+
+#进行测试
+myDat,labels = createDataSet()
+myTree = createTree(myDat,labels)
+print(myTree)
