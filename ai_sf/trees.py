@@ -2,8 +2,9 @@
 from math import log
 import operator
 
-#计算结果集中的香农熵
-def calcShannonEnt(dataSet):
+
+# 计算结果集中的香农熵
+def calcshannonEnt(dataSet):
 	numEntries = len(dataSet)
 	labelCounts = {}
 	for featVec in dataSet:
@@ -21,13 +22,15 @@ def calcShannonEnt(dataSet):
 		shannonEnt -= prob*log(prob,2)
 	return shannonEnt
 
+
 def createDataSet():
 	dataSet = [[1,1,'yes'],[1,1,'yes'],[1,0,'no'],[0,1,'no'],[0,1,'no']]
 	labels = ['no surfacing','flippers']
 	return dataSet,labels
 
-#按照给定特征划分数据集
-#params:数据集	划分数据集的特征  需要返回的特征值
+
+# 按照给定特征划分数据集
+# params:数据集	划分数据集的特征  需要返回的特征值
 def splitDataSet(dataSet,axis,value):
 	retDataSet = []
 	for featVec in dataSet:
@@ -38,7 +41,7 @@ def splitDataSet(dataSet,axis,value):
 	return retDataSet
 
 
-#choose the best way to split dataset
+# choose the best way to split dataset
 def chooseBestFeatureToSplit(dataSet):
 	numFeatures = len(dataSet[0]) - 1
 	baseEntropy = calcShannonEnt(dataSet)
@@ -59,7 +62,9 @@ def chooseBestFeatureToSplit(dataSet):
 			bestInfoGain = infoGain
 			bestFuture = i
 	return bestFuture
-#what is it doing?
+
+
+# what is it doing?
 def majorityCnt(classList):
 	classCount = {}
 	for vote in classList:
@@ -69,7 +74,8 @@ def majorityCnt(classList):
 	key = operator.itemgetter(1),reverse=True)
 	return sortedClassCount[0][0]
 
-#create Tree function
+
+# create Tree function
 def createTree(dataSet,labels):
 	#获取结果集中,所有list中最后一个元素(分类)
 	classList = [example[-1] for example in dataSet]
