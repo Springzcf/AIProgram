@@ -21,5 +21,5 @@ def createPlot():
     plotNode("叶节点", (0.8, 0.1), (0.3, 0.8), leafNode)
     plt.show()
 
-createPlot()
 
+createPlot()
