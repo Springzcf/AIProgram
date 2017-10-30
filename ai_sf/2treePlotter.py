@@ -1,7 +1,7 @@
 #_*_coding:utf-8_*_
 import matplotlib.pyplot as plt
 
-'''绘制决策树  '''
+'''绘制决策树'''
 decisionNode = dict(boxstyle="sawtooth", fc="0.8")
 leafNode = dict(boxstyle="round4", fc="0.8")
 arrow_args = dict(arrowstyle="<-")

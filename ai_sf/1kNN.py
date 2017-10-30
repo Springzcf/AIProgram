@@ -2,7 +2,7 @@
 from numpy import *
 import operator
 
-
+'''完成了对k-近邻算法'''
 # 创建数据训练数据集
 def createDataSet():
     group = array([[1.0, 1.1], [1.0, 1.0], [0, 0], [0, 0.1]])

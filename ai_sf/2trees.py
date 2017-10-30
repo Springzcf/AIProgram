@@ -2,6 +2,7 @@
 from math import log
 import operator
 
+'''计算香农熵,构建决策树'''
 # 计算结果集中的香农熵
 def calcShannonEnt(dataSet):
     numEntries = len(dataSet)
@@ -114,6 +115,21 @@ def classify(inputTree, featLables, testVec):
             else:
                 classLabel = secondDict[key]
     return classLabel
+
+
+# 决策树的储存到本地
+def storeTree(inputTree, fileName):
+    import pickle
+    fw = open(fileName, 'w')
+    pickle.dump(inputTree, fw)
+    fw.close()
+
+
+# 读取本地的决策树
+def gradTree(fielname):
+    import pickle
+    fr = open(fielname)
+    return pickle.load(fr)
 
 # 进行测试
 myDat, labels = createDataSet()
