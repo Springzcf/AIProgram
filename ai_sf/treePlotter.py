@@ -36,6 +36,7 @@ def plotTree(myTree, parentPt, nodetxt):
             plotMidText((plotTree.xOff, plotTree.yOff), cntrPt, str(key))
     plotTree.yOff = plotTree.yOff + 1.0/plotTree.totalD
 
+
 def createPlot(inTree):
     fig = plt.figure(1, facecolor='white')
     fig.clf()
@@ -48,6 +49,7 @@ def createPlot(inTree):
     plotTree(inTree, (0.5, 1.0), '')
     plt.show()
 
+
 # 获取节点的数
 def getNumLeafs(myTree):
     numLeafs = 0
@@ -59,6 +61,7 @@ def getNumLeafs(myTree):
         else:
             numLeafs += 1
     return numLeafs
+
 
 # 获取数的层数
 def getTreeDepth(myTree):
@@ -79,6 +82,9 @@ def retrieveTree(i):
     listOfTrees=[{'no surfacing': {0: 'no', 1: {'flippers': {0: 'no', 1: 'yes'}}}},
                  {'no surfacing': {0: 'no', 1: {'flippers': {0: {'head': {0: 'no', 1: 'yes'}}, 1: 'no'}}}}]
     return listOfTrees[i]
+
+
+
 
 '''
 测试
