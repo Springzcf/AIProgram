@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 '''绘制决策树  '''
 decisionNode = dict(boxstyle="sawtooth", fc="0.8")
-leafNode = dict(boxstyle="sawtooth", fc="0.8")
+leafNode = dict(boxstyle="round4", fc="0.8")
 arrow_args = dict(arrowstyle="<-")
 
 
@@ -20,5 +20,26 @@ def createPlot():
     plotNode("叶节点", (0.8, 0.1), (0.3, 0.8), leafNode)
     plt.show()
 
+# 获取节点的数
+def getNumLeafs(myTree):
+    numLeafs = 0
+    firstStr = myTree.key()[0]
+    secondDict = myTree[firstStr]
+    for key in secondDict.key():
+        if type(secondDict[key].__name__) == 'dict':
+            numLeafs += getNumLeafs(secondDict[key])
+        else:
+            numLeafs += 1
+    return numLeafs
 
-createPlot()
+# 获取输的层数
+def getTreeDepth(myTree):
+    maxDepth = 0
+    firstStr = myTree.keys()[0]
+    secondDict = myTree[firstStr]
+    for key in secondDict[firstStr]:
+        if type(secondDict[key].__name__) == 'dict':
+                thisDepth = 1 + getTreeDepth(secondDict[key])
+        else:
+            thisDepth = 1
+    return maxDepth
