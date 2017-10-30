@@ -4,18 +4,18 @@ import operator
 
 
 # 计算结果集中的香农熵
-def calcshannonEnt(dataSet):
-	numEntries = len(dataSet)
-	labelCounts = {}
-	for featVec in dataSet:
-		#获取数据集最后一列值,作为key
+def calcShannonEnt(dataSet):
+    numEntries = len(dataSet)
+    labelCounts = {}
+    for featVec in dataSet:
+        # 获取数据集最后一列值,作为key
 		currentLabel = featVec[-1]
-		#遍历数据集,将类型作为key,将value作为出现的次数
-		if currentLabel not in labelCounts.keys():
-			labelCounts[currentLabel] = 0
-		labelCounts[currentLabel] += 1
-	shannonEnt = 0.0
-	for key in labelCounts:
+        # 遍历数据集,将类型作为key,将value作为出现的次数
+		if currentLabel not in labelCounts.keys() :
+            labelCounts[currentLabel] = 0
+        labelCounts[currentLabel] += 1
+    shannonEnt = 0.0
+    for key in labelCounts:
 		#计算出现的概率
 		prob = float(labelCounts[key])/numEntries
 		#计算香农熵
@@ -77,7 +77,7 @@ def majorityCnt(classList):
 
 # create Tree function
 def createTree(dataSet,labels):
-	#获取结果集中,所有list中最后一个元素(分类)
+	# 获取结果集中,所有list中最后一个元素(分类)
 	classList = [example[-1] for example in dataSet]
 	#print(classList)
 	#>> ['yes', 'yes', 'no', 'no', 'no']
@@ -104,7 +104,7 @@ def createTree(dataSet,labels):
 	return myTree
 
 
-#进行测试
-myDat,labels = createDataSet()
-myTree = createTree(myDat,labels)
+# 进行测试
+myDat, labels = createDataSet()
+myTree = createTree(myDat, labels)
 print(myTree)
