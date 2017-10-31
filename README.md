@@ -1,2 +1,2 @@
-# AIProgram
-this is github for AI
+# AIProgram 人工智能项目
+主要包含了人工智能相关的代码
