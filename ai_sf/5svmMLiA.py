@@ -12,6 +12,8 @@ def loadDataSet(fileName):
         labelMat.append(float(lineArr[2]))
     return dataMat,labelMat
 
+
+# 获取0-m之前不等于i的随机数
 def selectJrand(i,m):
     j=i #we want to select any J not equal to i
     while (j==i):
@@ -25,6 +27,9 @@ def clipAlpha(aj,H,L):
         aj = L
     return aj
 
+
+# 简易版的SMO算法
+# params:样本数据,样本标签,常数C,容错率,退出前最大的循环次数
 def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
     dataMatrix = mat(dataMatIn); labelMat = mat(classLabels).transpose()
     b = 0; m,n = shape(dataMatrix)
@@ -33,27 +38,43 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
     while (iter < maxIter):
         alphaPairsChanged = 0
         for i in range(m):
+            # 预测的类别fxi
+            # TODO:这里的预测类别计算公式是什么?
             fXi = float(multiply(alphas,labelMat).T*(dataMatrix*dataMatrix[i,:].T)) + b
-            Ei = fXi - float(labelMat[i])#if checks if an example violates KKT conditions
+            # 预测的类别与真实的类别做差,得到误差Ei
+            Ei = fXi - float(labelMat[i])
             if ((labelMat[i]*Ei < -toler) and (alphas[i] < C)) or ((labelMat[i]*Ei > toler) and (alphas[i] > 0)):
+                # 随机选取alpha
                 j = selectJrand(i,m)
+                # 获取预测的类别fxj
                 fXj = float(multiply(alphas,labelMat).T*(dataMatrix*dataMatrix[j,:].T)) + b
+                # 预测的类别和真实的类别做差,得到误差Ej
                 Ej = fXj - float(labelMat[j])
+                # 将值copy到旧值中,后边进行比较
                 alphaIold = alphas[i].copy(); alphaJold = alphas[j].copy();
+                # ify1≠y2 L=max(0,αold2−αold1),H=min(C,C+αold2−αold1)
+                # ify1=y2 L=max(0,αold2+αold1−C),H=min(C,αold2+αold1)
                 if (labelMat[i] != labelMat[j]):
                     L = max(0, alphas[j] - alphas[i])
                     H = min(C, C + alphas[j] - alphas[i])
                 else:
                     L = max(0, alphas[j] + alphas[i] - C)
                     H = min(C, alphas[j] + alphas[i])
+                # todo 这里的L==H是什么意思?
                 if L==H: print("L==H"); continue
+                # 最优修改量eta
                 eta = 2.0 * dataMatrix[i,:]*dataMatrix[j,:].T - dataMatrix[i,:]*dataMatrix[i,:].T - dataMatrix[j,:]*dataMatrix[j,:].T
                 if eta >= 0: print("eta>=0"); continue
+                # 计算新的alpha[i]和alpha[j]
                 alphas[j] -= labelMat[j]*(Ei - Ej)/eta
                 alphas[j] = clipAlpha(alphas[j],H,L)
+                # 判断新值和旧值是否已经到达优化
                 if (abs(alphas[j] - alphaJold) < 0.00001): print("j not moving enough"); continue
                 alphas[i] += labelMat[j]*labelMat[i]*(alphaJold - alphas[j])#update i by the same amount as j
                                                                         #the update is in the oppostie direction
+                # 计算b
+                # bnew1=bold−E1−y1(αnew1−αold1)K(x1,x1)−y2(αnew2−αold2)K(x1,x2)
+                # bnew2=bold−E2−y1(αnew1−αold1)K(x1,x2)−y2(αnew2−αold2)K(x2,x2)
                 b1 = b - Ei- labelMat[i]*(alphas[i]-alphaIold)*dataMatrix[i,:]*dataMatrix[i,:].T - labelMat[j]*(alphas[j]-alphaJold)*dataMatrix[i,:]*dataMatrix[j,:].T
                 b2 = b - Ej- labelMat[i]*(alphas[i]-alphaIold)*dataMatrix[i,:]*dataMatrix[j,:].T - labelMat[j]*(alphas[j]-alphaJold)*dataMatrix[j,:]*dataMatrix[j,:].T
                 if (0 < alphas[i]) and (C > alphas[i]): b = b1
@@ -66,8 +87,15 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
         print("iteration number: %d" % iter)
     return b,alphas
 
-
+'''TestMain测试简易版
+dataArr, labelArr = loadDataSet("6testSet.txt")
+b, alpha = smoSimple(dataArr, labelArr, 0.6, 0.001, 40)
+print(b)
+print(alpha[alpha>0])
 '''
+'''------------------------------------------------优化SMO-------------------------------------------------------'''
+
+#
 def kernelTrans(X, A, kTup): #calc the kernel or transform data to a higher dimensional space
     m,n = shape(X)
     K = mat(zeros((m,1)))
@@ -81,6 +109,8 @@ def kernelTrans(X, A, kTup): #calc the kernel or transform data to a higher dime
     That Kernel is not recognized')
     return K
 
+
+# 保存误差
 class optStruct:
     def __init__(self,dataMatIn, classLabels, C, toler, kTup):  # Initialize the structure with the parameters
         self.X = dataMatIn
@@ -95,12 +125,15 @@ class optStruct:
         for i in range(self.m):
             self.K[:,i] = kernelTrans(self.X, self.X[i,:], kTup)
 
+# 计算类别误差E
 def calcEk(oS, k):
     fXk = float(multiply(oS.alphas,oS.labelMat).T*oS.K[:,k] + oS.b)
     Ek = fXk - float(oS.labelMat[k])
     return Ek
 
-def selectJ(i, oS, Ei):         #this is the second choice -heurstic, and calcs Ej
+
+# this is the second choice -heurstic, and calcs Ej
+def selectJ(i, oS, Ei):
     maxK = -1; maxDeltaE = 0; Ej = 0
     oS.eCache[i] = [1,Ei]  #set valid #choose the alpha that gives the maximum delta E
     validEcacheList = nonzero(oS.eCache[:,0].A)[0]
@@ -117,10 +150,14 @@ def selectJ(i, oS, Ei):         #this is the second choice -heurstic, and calcs 
         Ej = calcEk(oS, j)
     return j, Ej
 
+
+# 将误差存入到缓存中
 def updateEk(oS, k):#after any alpha has changed update the new value in the cache
     Ek = calcEk(oS, k)
     oS.eCache[k] = [1,Ek]
 
+
+#
 def innerL(i, oS):
     Ei = calcEk(oS, i)
     if ((oS.labelMat[i]*Ei < -oS.tol) and (oS.alphas[i] < oS.C)) or ((oS.labelMat[i]*Ei > oS.tol) and (oS.alphas[i] > 0)):
@@ -132,13 +169,13 @@ def innerL(i, oS):
         else:
             L = max(0, oS.alphas[j] + oS.alphas[i] - oS.C)
             H = min(oS.C, oS.alphas[j] + oS.alphas[i])
-        if L==H: print "L==H"; return 0
+        if L==H: print("L==H"); return 0
         eta = 2.0 * oS.K[i,j] - oS.K[i,i] - oS.K[j,j] #changed for kernel
-        if eta >= 0: print "eta>=0"; return 0
+        if eta >= 0: print("eta>=0"); return 0
         oS.alphas[j] -= oS.labelMat[j]*(Ei - Ej)/eta
         oS.alphas[j] = clipAlpha(oS.alphas[j],H,L)
         updateEk(oS, j) #added this for the Ecache
-        if (abs(oS.alphas[j] - alphaJold) < 0.00001): print "j not moving enough"; return 0
+        if (abs(oS.alphas[j] - alphaJold) < 0.00001): print("j not moving enough"); return 0
         oS.alphas[i] += oS.labelMat[j]*oS.labelMat[i]*(alphaJold - oS.alphas[j])#update i by the same amount as j
         updateEk(oS, i) #added this for the Ecache                    #the update is in the oppostie direction
         b1 = oS.b - Ei- oS.labelMat[i]*(oS.alphas[i]-alphaIold)*oS.K[i,i] - oS.labelMat[j]*(oS.alphas[j]-alphaJold)*oS.K[i,j]
@@ -149,6 +186,8 @@ def innerL(i, oS):
         return 1
     else: return 0
 
+
+# 完整板SMO外循环代码
 def smoP(dataMatIn, classLabels, C, toler, maxIter,kTup=('lin', 0)):    #full Platt SMO
     oS = optStruct(mat(dataMatIn),mat(classLabels).transpose(),C,toler, kTup)
     iter = 0
@@ -158,17 +197,17 @@ def smoP(dataMatIn, classLabels, C, toler, maxIter,kTup=('lin', 0)):    #full Pl
         if entireSet:   #go over all
             for i in range(oS.m):
                 alphaPairsChanged += innerL(i,oS)
-                print "fullSet, iter: %d i:%d, pairs changed %d" % (iter,i,alphaPairsChanged)
+                print("fullSet, iter: %d i:%d, pairs changed %d" % (iter,i,alphaPairsChanged))
             iter += 1
         else:#go over non-bound (railed) alphas
             nonBoundIs = nonzero((oS.alphas.A > 0) * (oS.alphas.A < C))[0]
             for i in nonBoundIs:
                 alphaPairsChanged += innerL(i,oS)
-                print "non-bound, iter: %d i:%d, pairs changed %d" % (iter,i,alphaPairsChanged)
+                print("non-bound, iter: %d i:%d, pairs changed %d" % (iter,i,alphaPairsChanged))
             iter += 1
         if entireSet: entireSet = False #toggle entire set loop
         elif (alphaPairsChanged == 0): entireSet = True
-        print "iteration number: %d" % iter
+        print("iteration number: %d" % iter)
     return oS.b,oS.alphas
 
 def calcWs(alphas,dataArr,classLabels):
@@ -179,6 +218,9 @@ def calcWs(alphas,dataArr,classLabels):
         w += multiply(alphas[i]*labelMat[i],X[i,:].T)
     return w
 
+
+
+
 def testRbf(k1=1.3):
     dataArr,labelArr = loadDataSet('testSetRBF.txt')
     b,alphas = smoP(dataArr, labelArr, 200, 0.0001, 10000, ('rbf', k1)) #C=200 important
@@ -186,14 +228,14 @@ def testRbf(k1=1.3):
     svInd=nonzero(alphas.A>0)[0]
     sVs=datMat[svInd] #get matrix of only support vectors
     labelSV = labelMat[svInd];
-    print "there are %d Support Vectors" % shape(sVs)[0]
+    print("there are %d Support Vectors" % shape(sVs)[0])
     m,n = shape(datMat)
     errorCount = 0
     for i in range(m):
         kernelEval = kernelTrans(sVs,datMat[i,:],('rbf', k1))
         predict=kernelEval.T * multiply(labelSV,alphas[svInd]) + b
         if sign(predict)!=sign(labelArr[i]): errorCount += 1
-    print "the training error rate is: %f" % (float(errorCount)/m)
+    print("the training error rate is: %f" % (float(errorCount)/m))
     dataArr,labelArr = loadDataSet('testSetRBF2.txt')
     errorCount = 0
     datMat=mat(dataArr); labelMat = mat(labelArr).transpose()
@@ -202,7 +244,7 @@ def testRbf(k1=1.3):
         kernelEval = kernelTrans(sVs,datMat[i,:],('rbf', k1))
         predict=kernelEval.T * multiply(labelSV,alphas[svInd]) + b
         if sign(predict)!=sign(labelArr[i]): errorCount += 1
-    print "the test error rate is: %f" % (float(errorCount)/m)
+    print("the test error rate is: %f" % (float(errorCount)/m))
 
 def img2vector(filename):
     returnVect = zeros((1,1024))
@@ -235,14 +277,14 @@ def testDigits(kTup=('rbf', 10)):
     svInd=nonzero(alphas.A>0)[0]
     sVs=datMat[svInd]
     labelSV = labelMat[svInd];
-    print "there are %d Support Vectors" % shape(sVs)[0]
+    print("there are %d Support Vectors" % shape(sVs)[0])
     m,n = shape(datMat)
     errorCount = 0
     for i in range(m):
         kernelEval = kernelTrans(sVs,datMat[i,:],kTup)
         predict=kernelEval.T * multiply(labelSV,alphas[svInd]) + b
         if sign(predict)!=sign(labelArr[i]): errorCount += 1
-    print "the training error rate is: %f" % (float(errorCount)/m)
+    print("the training error rate is: %f" % (float(errorCount)/m))
     dataArr,labelArr = loadImages('testDigits')
     errorCount = 0
     datMat=mat(dataArr); labelMat = mat(labelArr).transpose()
@@ -251,7 +293,7 @@ def testDigits(kTup=('rbf', 10)):
         kernelEval = kernelTrans(sVs,datMat[i,:],kTup)
         predict=kernelEval.T * multiply(labelSV,alphas[svInd]) + b
         if sign(predict)!=sign(labelArr[i]): errorCount += 1
-    print "the test error rate is: %f" % (float(errorCount)/m)
+    print("the test error rate is: %f" % (float(errorCount)/m))
 
 
 
@@ -303,13 +345,13 @@ def innerLK(i, oS):
         else:
             L = max(0, oS.alphas[j] + oS.alphas[i] - oS.C)
             H = min(oS.C, oS.alphas[j] + oS.alphas[i])
-        if L==H: print "L==H"; return 0
+        if L==H: print("L==H"); return 0
         eta = 2.0 * oS.X[i,:]*oS.X[j,:].T - oS.X[i,:]*oS.X[i,:].T - oS.X[j,:]*oS.X[j,:].T
-        if eta >= 0: print "eta>=0"; return 0
+        if eta >= 0: print("eta>=0"); return 0
         oS.alphas[j] -= oS.labelMat[j]*(Ei - Ej)/eta
         oS.alphas[j] = clipAlpha(oS.alphas[j],H,L)
         updateEk(oS, j) #added this for the Ecache
-        if (abs(oS.alphas[j] - alphaJold) < 0.00001): print "j not moving enough"; return 0
+        if (abs(oS.alphas[j] - alphaJold) < 0.00001): print("j not moving enough"); return 0
         oS.alphas[i] += oS.labelMat[j]*oS.labelMat[i]*(alphaJold - oS.alphas[j])#update i by the same amount as j
         updateEk(oS, i) #added this for the Ecache                    #the update is in the oppostie direction
         b1 = oS.b - Ei- oS.labelMat[i]*(oS.alphas[i]-alphaIold)*oS.X[i,:]*oS.X[i,:].T - oS.labelMat[j]*(oS.alphas[j]-alphaJold)*oS.X[i,:]*oS.X[j,:].T
@@ -329,17 +371,15 @@ def smoPK(dataMatIn, classLabels, C, toler, maxIter):    #full Platt SMO
         if entireSet:   #go over all
             for i in range(oS.m):
                 alphaPairsChanged += innerL(i,oS)
-                print "fullSet, iter: %d i:%d, pairs changed %d" % (iter,i,alphaPairsChanged)
+                print("fullSet, iter: %d i:%d, pairs changed %d" % (iter,i,alphaPairsChanged))
             iter += 1
         else:#go over non-bound (railed) alphas
             nonBoundIs = nonzero((oS.alphas.A > 0) * (oS.alphas.A < C))[0]
             for i in nonBoundIs:
                 alphaPairsChanged += innerL(i,oS)
-                print "non-bound, iter: %d i:%d, pairs changed %d" % (iter,i,alphaPairsChanged)
+                print("non-bound, iter: %d i:%d, pairs changed %d" % (iter,i,alphaPairsChanged))
             iter += 1
         if entireSet: entireSet = False #toggle entire set loop
         elif (alphaPairsChanged == 0): entireSet = True
-        print "iteration number: %d" % iter
+        print("iteration number: %d" % iter)
     return oS.b,oS.alphas
-
-'''
