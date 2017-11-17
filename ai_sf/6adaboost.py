@@ -1,5 +1,6 @@
 from numpy import *
 
+
 def loadSimpData():
     datMat = matrix([[1.,2.1],
         [2.,  1.1],
@@ -7,7 +8,8 @@ def loadSimpData():
         [1.,  1.],
         [2.,  1.]])
     classLabels = [1.0, 1.0, -1.0, -1.0, 1.0]
-    return datMat,classLabels
+    return datMat, classLabels
+
 
 def loadDataSet(fileName):      #general function to parse tab -delimited floats
     numFeat = len(open(fileName).readline().split('\t')) #get number of fields 
@@ -21,7 +23,7 @@ def loadDataSet(fileName):      #general function to parse tab -delimited floats
             lineArr.append(float(curLine[i]))
         dataMat.append(lineArr)
         labelMat.append(float(curLine[-1]))
-    return dataMat,labelMat
+    return dataMat, labelMat
 
 
 def stumpClassify(dataMatrix, dimen, threshVal, threshIneq):#just classify the data
@@ -33,6 +35,7 @@ def stumpClassify(dataMatrix, dimen, threshVal, threshIneq):#just classify the d
     return retArray
     
 
+# 生成弱学习器(简单决策树)
 def buildStump(dataArr, classLabels, D):
     dataMatrix = mat(dataArr); labelMat = mat(classLabels).T
     m, n = shape(dataMatrix)
@@ -62,10 +65,11 @@ def buildStump(dataArr, classLabels, D):
 
 
 # Test buildStump
+'''
 dataMat, classLabels = loadSimpData()
 D = mat(ones((5, 1))/5)
 bestStump, minError, bestClasEst = buildStump(dataMat, classLabels, D)
-print(bestStump)
+'''
 
 
 # 基于单层决策树的AdaBoost算法
@@ -74,57 +78,70 @@ def adaBoostTrainDS(dataArr,classLabels,numIt=40):
     weakClassArr = []
     m = shape(dataArr)[0]
     # 1:初始化训练数据的权值分布D。假设有N个训练样本数据，则每一个训练样本最开始时，都被赋予相同的权值：D=1/N
-    D = mat(ones((m, 1))/m)   #init D to all equal
+    D = mat(ones((m, 1))/m)   # init D to all equal
     aggClassEst = mat(zeros((m, 1)))
     # 2:进行迭代
     for i in range(numIt):
         # 2.1:
         bestStump, error, classEst = buildStump(dataArr, classLabels, D)#build Stump
-        #print "D:",D.T
+        print("D:", D.T)
         # 2.2:根据误差error计算alpha
         # alpha=1/2(ln(1-ei/ei))
-        alpha = float(0.5*log((1.0-error)/max(error, 1e-16)))#calc alpha, throw in max(error,eps) to account for error=0
+        alpha = float(0.5*log((1.0-error)/max(error, 1e-16)))  # calc alpha, throw in max(error,eps) to account for error=0
         bestStump['alpha'] = alpha  
         weakClassArr.append(bestStump)                  #store Stump Params in Array
-        #print "classEst: ",classEst.T
+        print("classEst: ", classEst.T)
         # 更新训练样本的权值分布
-        # DNew = DOld*exp(-alpha*labels*)/
+        # DNew = DOld*exp(-alpha*labels*)/Sum(D)
         expon = multiply(-1*alpha*mat(classLabels).T, classEst) #exponent for D calc, getting messy
         D = multiply(D, exp(expon))                              #Calc New D for next iteration
         D = D/D.sum()
-        #calc training error of all classifiers, if this is 0 quit for loop early (use break)
+        # calc training error of all classifiers, if this is 0 quit for loop early (use break)
         aggClassEst += alpha*classEst
-        #print "aggClassEst: ",aggClassEst.T
-        aggErrors = multiply(sign(aggClassEst) != mat(classLabels).T,ones((m,1)))
+        # print "aggClassEst: ",aggClassEst.T
+        aggErrors = multiply(sign(aggClassEst) != mat(classLabels).T, ones((m, 1)))
         errorRate = aggErrors.sum()/m
         print("total error: ", errorRate)
         if errorRate == 0.0:
             break
     return weakClassArr, aggClassEst
 
-def adaClassify(datToClass,classifierArr):
+
+# 测试AdaBoost算法
+'''
+dataMat, classLabels = loadSimpData()
+weakClassArr, aggClassEst = adaBoostTrainDS(dataMat, classLabels)
+'''
+
+
+def adaClassify(datToClass, classifierArr):
     dataMatrix = mat(datToClass)#do stuff similar to last aggClassEst in adaBoostTrainDS
     m = shape(dataMatrix)[0]
-    aggClassEst = mat(zeros((m,1)))
+    aggClassEst = mat(zeros((m, 1)))
     for i in range(len(classifierArr)):
-        classEst = stumpClassify(dataMatrix,classifierArr[i]['dim'],\
-                                 classifierArr[i]['thresh'],\
-                                 classifierArr[i]['ineq'])#call stump classify
+        classEst = stumpClassify(dataMatrix, classifierArr[i]['dim'], classifierArr[i]['thresh'], classifierArr[i]['ineq'])  #call stump classify
         aggClassEst += classifierArr[i]['alpha']*classEst
         print(aggClassEst)
     return sign(aggClassEst)
 
+
+# 测试AdaBoost算法,进行分类
+dataMat, classLabels = loadSimpData()
+classifierArr,i = adaBoostTrainDS(dataMat, classLabels)
+print(adaClassify([0, 0], classifierArr))
+
+
 def plotROC(predStrengths, classLabels):
     import matplotlib.pyplot as plt
-    cur = (1.0,1.0) #cursor
-    ySum = 0.0 #variable to calculate AUC
+    cur = (1.0, 1.0) #cursor
+    ySum = 0.0 # variable to calculate AUC
     numPosClas = sum(array(classLabels)==1.0)
     yStep = 1/float(numPosClas); xStep = 1/float(len(classLabels)-numPosClas)
     sortedIndicies = predStrengths.argsort()#get sorted index, it's reverse
     fig = plt.figure()
     fig.clf()
     ax = plt.subplot(111)
-    #loop through all the values, drawing a line segment at each point
+    # loop through all the values, drawing a line segment at each point
     for index in sortedIndicies.tolist()[0]:
         if classLabels[index] == 1.0:
             delX = 0; delY = yStep;
@@ -132,11 +149,11 @@ def plotROC(predStrengths, classLabels):
             delX = xStep; delY = 0;
             ySum += cur[1]
         #draw line from cur to (cur[0]-delX,cur[1]-delY)
-        ax.plot([cur[0],cur[0]-delX],[cur[1],cur[1]-delY], c='b')
-        cur = (cur[0]-delX,cur[1]-delY)
-    ax.plot([0,1],[0,1],'b--')
+        ax.plot([cur[0], cur[0]-delX], [cur[1], cur[1]-delY], c='b')
+        cur = (cur[0]-delX, cur[1]-delY)
+    ax.plot([0, 1], [0, 1], 'b--')
     plt.xlabel('False positive rate'); plt.ylabel('True positive rate')
     plt.title('ROC curve for AdaBoost horse colic detection system')
-    ax.axis([0,1,0,1])
+    ax.axis([0, 1, 0, 1])
     plt.show()
-    print("the Area Under the Curve is: ",ySum*xStep)
+    print("the Area Under the Curve is: ", ySum*xStep)
