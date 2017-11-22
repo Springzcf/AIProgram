@@ -103,7 +103,7 @@ def ridgeTest(xArr, yArr):
     wMat = zeros((numTestPts, shape(xMat)[1]))
     for i in range(numTestPts):
         ws = ridgeRegres(xMat, yMat, exp(i-10))
-        wMat[i,:]=ws.T
+        wMat[i, :]=ws.T
     return wMat
 
 
