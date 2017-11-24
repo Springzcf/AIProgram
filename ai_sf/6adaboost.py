@@ -65,11 +65,9 @@ def buildStump(dataArr, classLabels, D):
 
 
 # Test buildStump
-'''
-dataMat, classLabels = loadSimpData()
-D = mat(ones((5, 1))/5)
-bestStump, minError, bestClasEst = buildStump(dataMat, classLabels, D)
-'''
+# dataMat, classLabels = loadSimpData()
+# D = mat(ones((5, 1))/5)
+# bestStump, minError, bestClasEst = buildStump(dataMat, classLabels, D)
 
 
 # 基于单层决策树的AdaBoost算法
@@ -108,10 +106,8 @@ def adaBoostTrainDS(dataArr,classLabels,numIt=40):
 
 
 # 测试AdaBoost算法
-'''
-dataMat, classLabels = loadSimpData()
-weakClassArr, aggClassEst = adaBoostTrainDS(dataMat, classLabels)
-'''
+# dataMat, classLabels = loadSimpData()
+# weakClassArr, aggClassEst = adaBoostTrainDS(dataMat, classLabels)
 
 
 def adaClassify(datToClass, classifierArr):
