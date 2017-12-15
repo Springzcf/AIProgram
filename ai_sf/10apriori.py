@@ -1,10 +1,19 @@
 from numpy import *
 
+'''
+使用Apriori算法进行关联分析
+优点:易编码实现
+缺点:在大数据集上可能实现较慢
+适用的数据类型:数值型或者标称型数据
+'''
 
+
+# 加载数据
 def loadDataSet():
     return [[1, 3, 4], [2, 3, 5], [1, 2, 3, 5], [2, 5]]
 
 
+# 获取dataSet中不重复的元素
 def createC1(dataSet):
     C1 = []
     for transaction in dataSet:
@@ -17,7 +26,7 @@ def createC1(dataSet):
                             #can use it as a key in a dict    
 
 
-# 生成后选项集
+# 生成候选项集(筛选出大于最新支持度的选项)
 # 入参:数据集\候选项集列表\最小支持度
 # 出参:
 def scanD(D, Ck, minSupport):
@@ -66,7 +75,6 @@ def aprioriGen(Lk, k):
             if L1==L2: #if first k-2 elements are equal
                 retList.append(Lk[i] | Lk[j]) #set union
     return retList
-
 
 
 # Apriori算法
