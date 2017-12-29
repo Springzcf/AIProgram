@@ -15,13 +15,45 @@ def getDate(fileName):
         fltLine = list(map(float, curLine))  # map all elements to float()
         x_date.append(fltLine[0:-1])
         y_date.append(fltLine[-1])
-    return np.mat(x_date), np.mat(y_date).T
+    return x_date,y_date
 
+'''------------------------------------------------------------------------------------------------------------------'''
+'''
+# 将值转为到从beg到end次方的list
+def getPowArr(x_date, beg, end, std = 1):
+    x_result = []
+    for i in range(beg, end, std):
+        x_result.append(pow(x_date, i))
+    return x_result
 
+# 将样本特征转化为指数为beg到end之间的list
+def changeData(x_date):
+    x_result = []
+    x_lineTmp = []
+    x_PowTemp = []
+    x_line = []
+    for xLine in x_date:
+        for x in xLine:
+            x_PowTemp = getPowArr(x, -2, 2)
+            if len(x_lineTmp) == 0:
+                x_lineTmp.extend(x_PowTemp)
+            else:
+                print(x_PowTemp, x_lineTmp)
+                for x1 in x_PowTemp:
+                    for x2 in x_lineTmp:
+                        x_line.append(x1*x2)
+                x_lineTmp.extend(x_line)
+        print(x_lineTmp)
+        x_result.append(x_lineTmp)
+        x_lineTmp=[]
+    return x_result
+
+print(np.mat(changeData(getDate("D:\\WorkSpace\\AI\\AIProgram\\ai_program\\SearchRule\\dataSet\\ruleFile.txt")[0])))
+'''
+'''------------------------------------------------------------------------------------------------------------------'''
 
 # 进行图形的绘制
 # def drawPic():
-
 
 # 构建一层神经网络
 def addLayer(inputs, in_size, out_size, acF=None):
@@ -40,7 +72,7 @@ xn = 3
 # 声明变量空间
 xs = tf.placeholder(tf.float32, [None, xn])
 ys = tf.placeholder(tf.float32, [None, 1])
-x_date, y_date = getDate("ruleFile.txt")
+x_date, y_date = getDate("D:\\WorkSpace\\AI\\AIProgram\\ai_program\\SearchRule\\dataSet\\ruleFile.txt")
 # 构建曲线模型
 # -2 <元<2
 # 指数<3
@@ -75,6 +107,3 @@ for i in range(5000000):
 #
 # yText=np.mat([676.0])
 print(sess.run(prediction, feed_dict={xs: xText}))
-
-
-
