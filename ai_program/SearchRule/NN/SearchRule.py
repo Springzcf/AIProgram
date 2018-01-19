@@ -7,7 +7,6 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LassoCV
 
 
-
 '''-----------------------------------------------SR's help function-------------------------------------------------------'''
 # 进行数据的加载,从文件获取
 def getDate(fileName,isLabel=True):
@@ -84,6 +83,10 @@ def selectFuture(wIndex,x_data):
         new_data.append(np.array(data)[wIndex].tolist())
     print(new_data)
     return new_data
+
+# 写日志
+def writeLog(msg):
+    pass
 '''------------------------------------------------SR's NN function----------------------------------------------------'''
 # 构建一层神经网络
 def addLayer(inputs, in_size, out_size, acF=None):
@@ -176,5 +179,29 @@ def SRNN(trainFileName,testFileName,learningstep=0.0000001,trainTime=500000,MSEL
     pass
 
 # SRNN("D:\\WorkSpace\\AI\\AIProgram\\ai_program\\SearchRule\\NN\\dataSet\\ruleFile.csv","D:\\WorkSpace\\AI\\AIProgram\\ai_program\\SearchRule\\NN\\dataSet\\test.csv",learningstep=0.0001,trainTime=100000)
+'''
+app = Flask(__name__)
 
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    return '<h1>Home</h1>'
+
+@app.route('/signin', methods=['GET'])
+def signin_form():
+    return <form action="/signin" method="post">
+              <p><input name="username"></p>
+              <p><input name="password" type="password"></p>
+              <p><button type="submit">Sign In</button></p>
+              </form>
+
+@app.route('/signin', methods=['POST'])
+def signin():
+    # 需要从request对象读取表单内容：
+    if request.form['username']=='admin' and request.form['password']=='password':
+        return '<h3>Hello, admin!</h3>'
+    return '<h3>Bad username or password.</h3>'
+
+if __name__ == '__main__':
+    app.run()
+'''
 
